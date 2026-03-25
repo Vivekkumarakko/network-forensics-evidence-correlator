@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+reports/
+uploads/
+.env
+cloudflared.exe
+cloudflared.log
+waitress.log
+waitress.err.log
+waitress.out.log
+*.pyc

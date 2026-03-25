@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Evidence Correlator</title>
+  <style>
+    :root {
+      --bg: #07111a;
+      --panel: #102332;
+      --paper: #f7f4ee;
+      --text: #eaf2f6;
+      --ink: #102332;
+      --accent: #ff6d00;
+      --cyan: #1a8bb2;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(26, 139, 178, 0.2), transparent 28%),
+        linear-gradient(180deg, #07111a 0%, #102332 60%, #efe9de 60%, #f7f4ee 100%);
+      color: var(--text);
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 20px 60px; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .topbar a {
+      color: white;
+      text-decoration: none;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+    .hero { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 24px; margin-bottom: 24px; }
+    .panel {
+      background: rgba(7, 17, 26, 0.78);
+      border: 1px solid rgba(173, 212, 225, 0.16);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 18px 40px rgba(4, 9, 13, 0.22);
+    }
+    .panel.light {
+      background: rgba(247, 244, 238, 0.95);
+      color: var(--ink);
+    }
+    h1 { margin: 0 0 12px; font-size: 2.7rem; line-height: 1.05; }
+    p { line-height: 1.6; }
+    .badge {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 109, 0, 0.15);
+      color: #ffd8b3;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    form { display: grid; gap: 14px; }
+    label { display: grid; gap: 6px; font-weight: 600; }
+    input[type="file"] {
+      display: none;
+    }
+    .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .dropzone {
+      position: relative;
+      min-height: 160px;
+      border: 2px dashed rgba(16, 35, 50, 0.24);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(246,240,231,0.95));
+      padding: 18px;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .dropzone:hover, .dropzone.active {
+      transform: translateY(-1px);
+      border-color: rgba(255, 109, 0, 0.65);
+      box-shadow: 0 14px 26px rgba(255, 109, 0, 0.12);
+    }
+    .dropzone small {
+      display: block;
+      color: rgba(16, 35, 50, 0.74);
+      margin-top: 8px;
+    }
+    .dropzone .file-name {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      color: #0f6f90;
+      word-break: break-word;
+    }
+    button {
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #ff6d00, #ff9a3c);
+      color: white;
+      font-weight: 700;
+      padding: 14px 18px;
+      cursor: pointer;
+    }
+    .check {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-weight: 600;
+    }
+    .recent-list {
+      display: grid;
+      gap: 10px;
+      padding-left: 18px;
+    }
+    a { color: #0f6f90; }
+    .error {
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(190, 31, 31, 0.12);
+      color: #ffd1d1;
+    }
+    @media (max-width: 900px) {
+      .hero, .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <strong>Signed in as {{ username }}</strong>
+      </div>
+      <div>
+        <a href="/compare">Compare Runs</a>
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+    <section class="hero">
+      <div class="panel">
+        <div class="badge">Post-Incident Reconstruction</div>
+        <h1>Network Forensics Evidence Correlator</h1>
+        <p>Upload PCAP-derived CSV, firewall logs, and IDS alerts to reconstruct a single attack story with correlation, attack phases, MITRE ATT&CK enrichment, risk scoring, and evidence-backed forensic outputs.</p>
+        <p>Built for investigations where analysts need more than alerts: they need the timeline, the narrative, and the proof.</p>
+      </div>
+      <div class="panel light">
+        <h2>Run Analysis</h2>
+        <form action="/analyze" method="post" enctype="multipart/form-data">
+          <label class="check">
+            <input type="checkbox" name="use_sample" />
+            Use bundled sample evidence instead of uploaded files
+          </label>
+          <div class="row">
+            <label>
+              PCAP CSV
+              <div class="dropzone" data-input="pcap">
+                <strong>Drop PCAP CSV here</strong>
+                <small>Wireshark or tshark-derived CSV export</small>
+                <div class="file-name">No file selected</div>
+              </div>
+              <input id="pcap" type="file" name="pcap" accept=".csv" />
+            </label>
+            <label>
+              Firewall CSV
+              <div class="dropzone" data-input="firewall">
+                <strong>Drop Firewall CSV here</strong>
+                <small>Allowed and blocked traffic logs</small>
+                <div class="file-name">No file selected</div>
+              </div>
+              <input id="firewall" type="file" name="firewall" accept=".csv" />
+            </label>
+            <label>
+              IDS JSON
+              <div class="dropzone" data-input="ids">
+                <strong>Drop IDS JSON here</strong>
+                <small>Suricata or Snort alert export</small>
+                <div class="file-name">No file selected</div>
+              </div>
+              <input id="ids" type="file" name="ids" accept=".json" />
+            </label>
+          </div>
+          <button type="submit">Correlate Evidence</button>
+        </form>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="panel light">
+      <h2>Recent Runs</h2>
+      {% if recent_runs %}
+      <form action="/compare" method="get">
+        <ul class="recent-list">
+          {% for run_id in recent_runs %}
+          <li>
+            <label class="check">
+              <input type="checkbox" name="run_id" value="{{ run_id }}" />
+              <span><a href="/runs/{{ run_id }}">{{ run_id }}</a></span>
+            </label>
+          </li>
+          {% endfor %}
+        </ul>
+        <button type="submit">Compare Selected Runs</button>
+      </form>
+      {% else %}
+      <p>No saved runs yet. Start with the sample dataset or upload evidence files.</p>
+      {% endif %}
+    </section>
+  </div>
+  <script>
+    const sampleToggle = document.querySelector('input[name="use_sample"]');
+    const dropzones = document.querySelectorAll('.dropzone');
+
+    const updateDisabledState = () => {
+      dropzones.forEach((zone) => {
+        const input = document.getElementById(zone.dataset.input);
+        const disabled = sampleToggle.checked;
+        zone.style.opacity = disabled ? '0.45' : '1';
+        zone.style.pointerEvents = disabled ? 'none' : 'auto';
+        input.disabled = disabled;
+      });
+    };
+
+    const syncFileName = (input, zone) => {
+      const label = zone.querySelector('.file-name');
+      label.textContent = input.files && input.files[0] ? input.files[0].name : 'No file selected';
+    };
+
+    dropzones.forEach((zone) => {
+      const input = document.getElementById(zone.dataset.input);
+      zone.addEventListener('click', () => input.click());
+      zone.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        zone.classList.add('active');
+      });
+      zone.addEventListener('dragleave', () => zone.classList.remove('active'));
+      zone.addEventListener('drop', (event) => {
+        event.preventDefault();
+        zone.classList.remove('active');
+        input.files = event.dataTransfer.files;
+        syncFileName(input, zone);
+      });
+      input.addEventListener('change', () => syncFileName(input, zone));
+    });
+
+    sampleToggle.addEventListener('change', updateDisabledState);
+    updateDisabledState();
+  </script>
+</body>
+</html>

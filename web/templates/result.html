@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Analysis Result</title>
+  <style>
+    :root {
+      --bg: #07111a;
+      --panel: #102332;
+      --paper: #f7f4ee;
+      --text: #eaf2f6;
+      --ink: #102332;
+      --accent: #ff6d00;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: linear-gradient(180deg, #07111a 0%, #102332 58%, #f3ede2 58%, #f8f5ef 100%);
+      color: var(--text);
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 30px 20px 60px; }
+    .topbar { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 20px; }
+    .panel, .incident {
+      background: rgba(247, 244, 238, 0.96);
+      color: var(--ink);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 18px 40px rgba(4, 9, 13, 0.18);
+      margin-bottom: 18px;
+    }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+    .metric {
+      background: rgba(7, 17, 26, 0.82);
+      color: var(--text);
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .metric span { display: block; opacity: 0.8; margin-bottom: 8px; }
+    .metric strong { font-size: 1.8rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(16, 35, 50, 0.12); vertical-align: top; }
+    th { background: rgba(255, 109, 0, 0.08); }
+    .incident-header { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .pill {
+      display: inline-block;
+      background: #102332;
+      color: #f7f4ee;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-weight: 700;
+    }
+    .actions a {
+      display: inline-block;
+      margin-right: 10px;
+      color: white;
+      text-decoration: none;
+      background: linear-gradient(135deg, #ff6d00, #ff9a3c);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+    .secondary {
+      background: rgba(255,255,255,0.12) !important;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .filter-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 14px;
+    }
+    .filter-grid label {
+      display: grid;
+      gap: 6px;
+      font-weight: 700;
+    }
+    .filter-grid input, .filter-grid select {
+      width: 100%;
+      border: 1px solid rgba(16, 35, 50, 0.18);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font: inherit;
+      background: white;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .artifact-links a {
+      display: inline-block;
+      margin-right: 10px;
+      margin-bottom: 8px;
+      color: #0f6f90;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .artifact-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .artifact-card {
+      border: 1px solid rgba(16, 35, 50, 0.12);
+      border-radius: 16px;
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(248,245,239,0.95));
+    }
+    .artifact-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .muted {
+      color: rgba(16, 35, 50, 0.72);
+    }
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #ff6d00, #ff9a3c);
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .notes-form {
+      display: grid;
+      gap: 12px;
+    }
+    .notes-form textarea {
+      width: 100%;
+      min-height: 160px;
+      border: 1px solid rgba(16, 35, 50, 0.16);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font: inherit;
+      resize: vertical;
+    }
+    .hidden {
+      display: none;
+    }
+    .chain-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .attack-chain {
+      border: 1px solid rgba(16, 35, 50, 0.12);
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,245,239,0.96));
+    }
+    .chain-flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin: 14px 0 10px;
+    }
+    .chain-node, .chain-endpoint {
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 700;
+    }
+    .chain-endpoint.attacker {
+      background: rgba(255, 109, 0, 0.13);
+      color: #a14300;
+    }
+    .chain-endpoint.target {
+      background: rgba(26, 139, 178, 0.14);
+      color: #0f6f90;
+    }
+    .chain-node {
+      background: rgba(16, 35, 50, 0.08);
+    }
+    .chain-arrow {
+      color: rgba(16, 35, 50, 0.5);
+      font-weight: 800;
+    }
+    @media (max-width: 900px) {
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .topbar, .incident-header { flex-direction: column; align-items: flex-start; }
+      .filter-grid { grid-template-columns: 1fr; }
+      .artifact-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>Analysis Complete</h1>
+        <p>Run ID: {{ run_id }}</p>
+      </div>
+      <div class="actions">
+        <a href="/">New Run</a>
+        <a class="secondary" href="/runs/{{ run_id }}">Saved Output Links</a>
+        <a class="secondary" href="/compare?run_id={{ run_id }}">Compare This Run</a>
+      </div>
+    </div>
+
+    <section class="metrics">
+      <div class="metric"><span>Total Events</span><strong>{{ metrics.event_count }}</strong></div>
+      <div class="metric"><span>Incidents</span><strong>{{ metrics.incident_count }}</strong></div>
+      <div class="metric"><span>Highest Risk</span><strong>{{ metrics.highest_risk }}/100</strong></div>
+      <div class="metric"><span>MITRE Techniques</span><strong>{{ metrics.mitre_total }}</strong></div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <div>
+          <h2>Artifacts</h2>
+          <p class="muted">Download investigation outputs, share CSV extracts, or open the print-ready executive summary.</p>
+        </div>
+        <div class="artifact-links">
+          <a href="{{ artifacts.report_url }}">Markdown Report</a>
+          <a href="{{ artifacts.dashboard_url }}">HTML Dashboard</a>
+          <a href="{{ artifacts.json_url }}">JSON Export</a>
+          <a href="{{ artifacts.timeline_csv_url }}">Timeline CSV</a>
+          <a href="{{ artifacts.incidents_csv_url }}">Incidents CSV</a>
+          <a href="{{ artifacts.executive_summary_url }}">Executive Summary</a>
+        </div>
+      </div>
+      <div class="artifact-grid">
+        <div class="artifact-card">
+          <strong>Markdown Report</strong>
+          <div><code>{{ result.report_path }}</code></div>
+        </div>
+        <div class="artifact-card">
+          <strong>Interactive Dashboard</strong>
+          <div><code>{{ result.dashboard_path }}</code></div>
+        </div>
+        <div class="artifact-card">
+          <strong>JSON Export</strong>
+          <div><code>{{ result.json_path }}</code></div>
+        </div>
+        <div class="artifact-card">
+          <strong>Timeline CSV</strong>
+          <div><code>{{ result.timeline_csv_path }}</code></div>
+        </div>
+        <div class="artifact-card">
+          <strong>Incidents CSV</strong>
+          <div><code>{{ result.incidents_csv_path }}</code></div>
+        </div>
+        <div class="artifact-card">
+          <strong>Executive Summary</strong>
+          <div><code>{{ result.executive_summary_path }}</code></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Filters</h2>
+      <div class="filter-grid">
+        <label>
+          IP Address
+          <input id="filter-ip" type="text" placeholder="Filter by source or destination IP" />
+        </label>
+        <label>
+          Attack Phase
+          <select id="filter-phase">
+            <option value="">All phases</option>
+            <option value="Reconnaissance">Reconnaissance</option>
+            <option value="Exploitation">Exploitation</option>
+            <option value="Exfiltration">Exfiltration</option>
+          </select>
+        </label>
+        <label>
+          Minimum Risk
+          <select id="filter-risk">
+            <option value="0">0+</option>
+            <option value="25">25+</option>
+            <option value="50">50+</option>
+            <option value="75">75+</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <div>
+          <h2>Case Notes</h2>
+          <p class="muted">Persist analyst observations, containment actions, and follow-up tasks for this run.</p>
+        </div>
+      </div>
+      <form class="notes-form" action="/runs/{{ run_id }}/notes" method="post">
+        <input type="hidden" name="next" value="/runs/{{ run_id }}/result" />
+        <textarea name="notes" placeholder="Add investigation notes, affected systems, decisions, or recommended next steps.">{{ notes }}</textarea>
+        <button type="submit">Save Case Notes</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <h2>Attack Chains</h2>
+        <span id="chain-count" class="muted"></span>
+      </div>
+      <div class="chain-grid">
+        {% for incident in result.incidents %}
+        <div
+          class="attack-chain"
+          data-incident-id="{{ incident.incident_id }}"
+          data-src-ip="{{ incident.src_ip }}"
+          data-dst-ip="{{ incident.dst_ip }}"
+          data-risk="{{ incident.risk_score }}"
+          data-phases="{{ incident.phases|join('|') }}"
+        >
+          <div class="incident-header">
+            <div>
+              <h3>{{ incident.incident_id }}</h3>
+              <p class="muted">{{ incident.protocol }} flow with {{ incident.events|length }} evidence events</p>
+            </div>
+            <span class="pill">Risk {{ incident.risk_score }}/100</span>
+          </div>
+          <div class="chain-flow">
+            <div class="chain-endpoint attacker">{{ incident.src_ip }}</div>
+            <div class="chain-arrow">→</div>
+            {% for phase in incident.phases %}
+            <div class="chain-node">{{ phase }}</div>
+            {% if not loop.last %}
+            <div class="chain-arrow">→</div>
+            {% endif %}
+            {% endfor %}
+            {% if incident.phases %}
+            <div class="chain-arrow">→</div>
+            {% endif %}
+            <div class="chain-endpoint target">{{ incident.dst_ip }}</div>
+          </div>
+          <p>{{ incident.narrative }}</p>
+          <p><strong>MITRE ATT&CK:</strong> {{ incident.mitre_techniques|join(', ') if incident.mitre_techniques else 'None' }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <h2>Timeline</h2>
+        <span id="timeline-count" class="muted"></span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Incident</th>
+            <th>Timestamp</th>
+            <th>Source</th>
+            <th>Source IP</th>
+            <th>Destination IP</th>
+            <th>Protocol</th>
+            <th>Action</th>
+            <th>Summary</th>
+            <th>Severity</th>
+          </tr>
+        </thead>
+        <tbody id="timeline-body">
+          {% for row in result.timeline %}
+          <tr
+            data-incident-id="{{ row.incident_id or '' }}"
+            data-src-ip="{{ row.src_ip }}"
+            data-dst-ip="{{ row.dst_ip }}"
+            data-risk="{{ row.risk_score }}"
+            data-phases="{{ row.phases|join('|') }}"
+          >
+            <td>{{ row.incident_id or '-' }}</td>
+            <td>{{ row.timestamp }}</td>
+            <td>{{ row.source }}</td>
+            <td>{{ row.src_ip }}</td>
+            <td>{{ row.dst_ip }}</td>
+            <td>{{ row.protocol }}</td>
+            <td>{{ row.action }}</td>
+            <td>{{ row.summary }}</td>
+            <td>{{ row.severity }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    {% for incident in result.incidents %}
+    <section
+      class="incident"
+      data-incident-id="{{ incident.incident_id }}"
+      data-src-ip="{{ incident.src_ip }}"
+      data-dst-ip="{{ incident.dst_ip }}"
+      data-risk="{{ incident.risk_score }}"
+      data-phases="{{ incident.phases|join('|') }}"
+    >
+      <div class="incident-header">
+        <div>
+          <h2>{{ incident.incident_id }}</h2>
+          <p>{{ incident.src_ip }} to {{ incident.dst_ip }} over {{ incident.protocol }}</p>
+        </div>
+        <span class="pill">Risk {{ incident.risk_score }}/100</span>
+      </div>
+      <p>{{ incident.narrative }}</p>
+      <p><strong>Phases:</strong> {{ incident.phases|join(', ') if incident.phases else 'Unknown' }}</p>
+      <p><strong>MITRE ATT&CK:</strong> {{ incident.mitre_techniques|join(', ') if incident.mitre_techniques else 'None' }}</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Source</th>
+            <th>Summary</th>
+            <th>Source IP</th>
+            <th>Destination IP</th>
+            <th>Protocol</th>
+            <th>Action</th>
+            <th>Severity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in incident.events %}
+          <tr>
+            <td>{{ event.timestamp }}</td>
+            <td>{{ event.source }}</td>
+            <td>{{ event.summary }}</td>
+            <td>{{ event.src_ip }}</td>
+            <td>{{ event.dst_ip }}</td>
+            <td>{{ event.protocol }}</td>
+            <td>{{ event.action }}</td>
+            <td>{{ event.severity }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+    {% endfor %}
+  </div>
+  <script>
+    const attackChains = Array.from(document.querySelectorAll('.attack-chain'));
+    const incidentCards = Array.from(document.querySelectorAll('.incident'));
+    const timelineRows = Array.from(document.querySelectorAll('#timeline-body tr'));
+    const ipFilter = document.getElementById('filter-ip');
+    const phaseFilter = document.getElementById('filter-phase');
+    const riskFilter = document.getElementById('filter-risk');
+    const timelineCount = document.getElementById('timeline-count');
+    const chainCount = document.getElementById('chain-count');
+
+    const matchesIp = (value, src, dst) => !value || src.includes(value) || dst.includes(value);
+    const matchesPhase = (value, phases) => !value || phases.split('|').includes(value);
+    const matchesRisk = (value, risk) => Number(risk) >= Number(value);
+
+    const applyFilters = () => {
+      const ipValue = ipFilter.value.trim().toLowerCase();
+      const phaseValue = phaseFilter.value;
+      const riskValue = riskFilter.value;
+      const visibleIncidents = new Set();
+
+      incidentCards.forEach((card) => {
+        const src = card.dataset.srcIp.toLowerCase();
+        const dst = card.dataset.dstIp.toLowerCase();
+        const phases = card.dataset.phases;
+        const risk = card.dataset.risk;
+        const visible = matchesIp(ipValue, src, dst) && matchesPhase(phaseValue, phases) && matchesRisk(riskValue, risk);
+        card.classList.toggle('hidden', !visible);
+        if (visible) {
+          visibleIncidents.add(card.dataset.incidentId);
+        }
+      });
+
+      let visibleChainCount = 0;
+      attackChains.forEach((card) => {
+        const src = card.dataset.srcIp.toLowerCase();
+        const dst = card.dataset.dstIp.toLowerCase();
+        const phases = card.dataset.phases;
+        const risk = card.dataset.risk;
+        const visible = matchesIp(ipValue, src, dst) && matchesPhase(phaseValue, phases) && matchesRisk(riskValue, risk);
+        card.classList.toggle('hidden', !visible);
+        if (visible) {
+          visibleChainCount += 1;
+        }
+      });
+
+      let visibleTimelineCount = 0;
+      timelineRows.forEach((row) => {
+        const src = row.dataset.srcIp.toLowerCase();
+        const dst = row.dataset.dstIp.toLowerCase();
+        const phases = row.dataset.phases;
+        const risk = row.dataset.risk;
+        const incidentId = row.dataset.incidentId;
+        const visible = matchesIp(ipValue, src, dst)
+          && matchesPhase(phaseValue, phases)
+          && matchesRisk(riskValue, risk)
+          && (!incidentId || visibleIncidents.has(incidentId));
+        row.classList.toggle('hidden', !visible);
+        if (visible) {
+          visibleTimelineCount += 1;
+        }
+      });
+
+      chainCount.textContent = `${visibleChainCount} visible attack chains`;
+      timelineCount.textContent = `${visibleTimelineCount} visible timeline events`;
+    };
+
+    [ipFilter, phaseFilter, riskFilter].forEach((control) => {
+      control.addEventListener('input', applyFilters);
+      control.addEventListener('change', applyFilters);
+    });
+    applyFilters();
+  </script>
+</body>
+</html>

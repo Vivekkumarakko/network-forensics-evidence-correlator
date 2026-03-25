@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Saved Run</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: linear-gradient(180deg, #07111a 0%, #102332 55%, #f7f4ee 55%, #f7f4ee 100%);
+      color: #eaf2f6;
+    }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 32px 20px 60px; }
+    .panel {
+      background: rgba(247, 244, 238, 0.96);
+      color: #102332;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(4, 9, 13, 0.18);
+    }
+    .artifact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 18px 0;
+    }
+    .artifact {
+      border: 1px solid rgba(16, 35, 50, 0.12);
+      border-radius: 16px;
+      padding: 14px;
+      background: white;
+    }
+    .artifact strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .notes {
+      margin-top: 18px;
+      border: 1px solid rgba(16, 35, 50, 0.12);
+      border-radius: 16px;
+      padding: 14px;
+      background: white;
+      white-space: pre-wrap;
+    }
+    a { color: #0f6f90; }
+    @media (max-width: 700px) {
+      .artifact-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <h1>Saved Run {{ run_id }}</h1>
+      <div class="artifact-grid">
+        <div class="artifact">
+          <strong>Markdown Report</strong>
+          <a href="/{{ report_path }}">{{ report_path }}</a>
+        </div>
+        <div class="artifact">
+          <strong>HTML Dashboard</strong>
+          <a href="/{{ dashboard_path }}">{{ dashboard_path }}</a>
+        </div>
+        <div class="artifact">
+          <strong>JSON Export</strong>
+          <a href="/{{ json_path }}">{{ json_path }}</a>
+        </div>
+        <div class="artifact">
+          <strong>Timeline CSV</strong>
+          <a href="/{{ timeline_csv_path }}">{{ timeline_csv_path }}</a>
+        </div>
+        <div class="artifact">
+          <strong>Incidents CSV</strong>
+          <a href="/{{ incidents_csv_path }}">{{ incidents_csv_path }}</a>
+        </div>
+        <div class="artifact">
+          <strong>Executive Summary</strong>
+          <a href="/{{ executive_summary_path }}">{{ executive_summary_path }}</a>
+        </div>
+      </div>
+      <div class="notes">{{ notes or 'No case notes saved yet.' }}</div>
+      <p><a href="/">Start another analysis</a></p>
+      <p><a href="/runs/{{ run_id }}/result">Open interactive result view</a></p>
+      <p><a href="/compare?run_id={{ run_id }}">Compare this run</a></p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+[
+  {
+    "timestamp": "2026-03-22T10:00:11Z",
+    "signature": "ET SCAN Possible Nmap Scan",
+    "severity": 3,
+    "src_ip": "10.10.14.23",
+    "dst_ip": "172.16.10.8",
+    "src_port": 51514,
+    "dst_port": 80,
+    "protocol": "TCP",
+    "category": "Attempted Information Leak"
+  },
+  {
+    "timestamp": "2026-03-22T10:06:07Z",
+    "signature": "ET WEB_SERVER SQL Injection Attempt",
+    "severity": 5,
+    "src_ip": "10.10.14.23",
+    "dst_ip": "172.16.10.8",
+    "src_port": 51516,
+    "dst_port": 80,
+    "protocol": "TCP",
+    "category": "Web Application Attack"
+  },
+  {
+    "timestamp": "2026-03-22T10:09:49Z",
+    "signature": "ET POLICY DNS Tunneling Suspected",
+    "severity": 5,
+    "src_ip": "172.16.10.8",
+    "dst_ip": "8.8.8.8",
+    "src_port": 53001,
+    "dst_port": 53,
+    "protocol": "UDP",
+    "category": "Potential Corporate Privacy Violation"
+  }
+]

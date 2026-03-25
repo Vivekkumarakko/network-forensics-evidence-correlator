@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: network-forensics-evidence-correlator
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: waitress-serve --host=0.0.0.0 --port=$PORT web.app:app
+    envVars:
+      - key: NFEC_SECRET_KEY
+        generateValue: true
+      - key: NFEC_USERNAME
+        value: analyst
+      - key: NFEC_PASSWORD
+        sync: false
+      - key: NFEC_SECURE_COOKIE
+        value: "1"

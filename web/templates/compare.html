@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Run Comparison</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: linear-gradient(180deg, #07111a 0%, #102332 56%, #f7f4ee 56%, #f7f4ee 100%);
+      color: #eaf2f6;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 30px 20px 60px; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .topbar a {
+      color: white;
+      text-decoration: none;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+    .panel {
+      background: rgba(247, 244, 238, 0.96);
+      color: #102332;
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 18px 40px rgba(4, 9, 13, 0.18);
+      margin-bottom: 18px;
+    }
+    .run-picker {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 14px 0 18px;
+    }
+    .run-option {
+      border: 1px solid rgba(16, 35, 50, 0.12);
+      border-radius: 16px;
+      padding: 14px;
+      background: white;
+    }
+    .run-option label {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-weight: 700;
+    }
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #ff6d00, #ff9a3c);
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgba(16, 35, 50, 0.12); vertical-align: top; }
+    th { background: rgba(255, 109, 0, 0.08); }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .compare-card {
+      border: 1px solid rgba(16, 35, 50, 0.12);
+      border-radius: 18px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,245,239,0.96));
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(16, 35, 50, 0.08);
+      font-weight: 700;
+    }
+    .notes {
+      white-space: pre-wrap;
+      background: rgba(16, 35, 50, 0.04);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    @media (max-width: 900px) {
+      .run-picker, .compare-grid { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>Multi-Run Comparison</h1>
+        <p>Compare metrics, techniques, and analyst notes across saved investigations.</p>
+      </div>
+      <a href="/">Back To Console</a>
+    </div>
+
+    <section class="panel">
+      <h2>Select Runs</h2>
+      <form method="get" action="/compare">
+        <div class="run-picker">
+          {% for run_id in recent_runs %}
+          <div class="run-option">
+            <label>
+              <input type="checkbox" name="run_id" value="{{ run_id }}" {% if run_id in selected %}checked{% endif %} />
+              <span>{{ run_id }}</span>
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="submit">Compare Selected Runs</button>
+      </form>
+    </section>
+
+    {% if comparisons %}
+    <section class="panel">
+      <h2>Metrics Overview</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Run ID</th>
+            <th>Total Events</th>
+            <th>Incidents</th>
+            <th>Highest Risk</th>
+            <th>MITRE Techniques</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in comparisons %}
+          <tr>
+            <td><a href="/runs/{{ item.run_id }}/result">{{ item.run_id }}</a></td>
+            <td>{{ item.metrics.event_count }}</td>
+            <td>{{ item.metrics.incident_count }}</td>
+            <td>{{ item.metrics.highest_risk }}</td>
+            <td>{{ item.metrics.mitre_total }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="compare-grid">
+      {% for item in comparisons %}
+      <article class="compare-card">
+        <h2>{{ item.run_id }}</h2>
+        <p><strong>Highest Risk:</strong> {{ item.metrics.highest_risk }}/100</p>
+        <p><strong>Incident Count:</strong> {{ item.metrics.incident_count }}</p>
+        <p><strong>Phases:</strong></p>
+        <div class="chips">
+          {% for incident in item.result.incidents %}
+            {% for phase in incident.phases %}
+            <span class="chip">{{ phase }}</span>
+            {% endfor %}
+          {% endfor %}
+        </div>
+        <p><strong>Techniques:</strong></p>
+        <div class="chips">
+          {% for incident in item.result.incidents %}
+            {% for technique in incident.mitre_techniques %}
+            <span class="chip">{{ technique }}</span>
+            {% endfor %}
+          {% endfor %}
+        </div>
+        <p><strong>Analyst Notes:</strong></p>
+        <div class="notes">{{ item.notes or 'No case notes saved yet.' }}</div>
+      </article>
+      {% endfor %}
+    </section>
+    {% else %}
+    <section class="panel">
+      <p>Select one or more saved runs to compare them side by side.</p>
+    </section>
+    {% endif %}
+  </div>
+</body>
+</html>
