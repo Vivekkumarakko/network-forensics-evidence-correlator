@@ -23,6 +23,7 @@ A production-style starter project that ingests packet evidence, firewall logs, 
 - Attack-chain visualizations, CSV exports, and printable executive summary
 - Analyst login, persistent case notes, and multi-run comparison
 - Production deployment support via Waitress, Docker, and Render config
+- Netlify-ready static frontend in `site/` for instant browser-based analysis
 
 ## Project Structure
 
@@ -68,6 +69,12 @@ python web/app.py
 
 ```powershell
 waitress-serve --host=0.0.0.0 --port=8000 web.app:app
+```
+
+6. Use the Netlify-ready static version:
+
+```powershell
+python -m http.server 4173 --directory site
 ```
 
 Default local demo login:
@@ -134,6 +141,7 @@ Expected top-level JSON array of objects with fields like:
 - Saved analyst notes per run
 - Protected comparison view across multiple investigations
 - `/healthz` readiness endpoint for hosting platforms
+- Static Netlify deployment from `site/` with browser-only analysis and exports
 
 ## Why This Matters
 

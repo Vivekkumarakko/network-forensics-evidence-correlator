@@ -1,0 +1,5 @@
+timestamp,src_ip,dst_ip,src_port,dst_port,protocol,packet_count,bytes,notes
+2026-03-22T10:00:10Z,10.10.14.23,172.16.10.8,51514,80,TCP,42,4500,Port sweep against web service
+2026-03-22T10:02:14Z,10.10.14.23,172.16.10.8,51515,80,TCP,61,7200,Follow-up HTTP probing
+2026-03-22T10:06:05Z,10.10.14.23,172.16.10.8,51516,80,TCP,85,11000,Suspicious POST burst after exploit
+2026-03-22T10:09:45Z,172.16.10.8,8.8.8.8,53001,53,UDP,310,180000,DNS tunnel large transfer exfil

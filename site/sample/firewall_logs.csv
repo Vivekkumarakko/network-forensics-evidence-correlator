@@ -1,0 +1,5 @@
+timestamp,action,src_ip,dst_ip,src_port,dst_port,protocol,rule
+2026-03-22T10:00:12Z,blocked,10.10.14.23,172.16.10.8,51514,22,TCP,deny-ssh-scan
+2026-03-22T10:02:22Z,allowed,10.10.14.23,172.16.10.8,51515,80,TCP,allow-web
+2026-03-22T10:06:06Z,allowed,10.10.14.23,172.16.10.8,51516,80,TCP,allow-web
+2026-03-22T10:09:47Z,allowed,172.16.10.8,8.8.8.8,53001,53,UDP,allow-dns

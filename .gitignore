@@ -10,4 +10,5 @@ cloudflared.log
 waitress.log
 waitress.err.log
 waitress.out.log
+site.zip
 *.pyc

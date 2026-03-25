@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Network Forensics Evidence Correlator</title>
+  <meta
+    name="description"
+    content="Client-side network forensics evidence correlator for PCAP CSV, firewall logs, and IDS alerts with attack timelines, risk scoring, MITRE mapping, and forensic exports."
+  />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <nav class="topbar">
+        <div class="brand-lockup">
+          <div class="brand-mark">NF</div>
+          <div>
+            <p class="eyebrow">Final Deployment Edition</p>
+            <h1>Network Forensics Evidence Correlator</h1>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button id="load-sample-btn" class="secondary-button">Load Sample Attack</button>
+          <button id="run-analysis-btn" class="primary-button">Correlate Evidence</button>
+        </div>
+      </nav>
+
+      <section class="hero-grid">
+        <article class="hero-copy glass-panel">
+          <span class="badge">Post-Incident Reconstruction</span>
+          <h2>One attack story across PCAP, firewall, and IDS evidence.</h2>
+          <p>
+            Upload evidence, reconstruct the timeline, score the risk, map to MITRE ATT&CK,
+            and export a polished forensic package directly in the browser. No backend required.
+          </p>
+          <div class="feature-pills">
+            <span>Chronological Timeline</span>
+            <span>MITRE Mapping</span>
+            <span>Risk Scoring</span>
+            <span>Executive Summary</span>
+          </div>
+        </article>
+
+        <article class="upload-panel paper-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Evidence Intake</p>
+              <h3>Drop your evidence sources</h3>
+            </div>
+            <button id="clear-inputs-btn" class="ghost-button">Clear</button>
+          </div>
+
+          <div class="upload-grid">
+            <label class="dropzone" data-input="pcap-input">
+              <input id="pcap-input" type="file" accept=".csv" />
+              <strong>PCAP CSV</strong>
+              <span>Wireshark/tshark flow export</span>
+              <em class="file-label">No file selected</em>
+            </label>
+
+            <label class="dropzone" data-input="firewall-input">
+              <input id="firewall-input" type="file" accept=".csv" />
+              <strong>Firewall CSV</strong>
+              <span>Allowed and blocked connection logs</span>
+              <em class="file-label">No file selected</em>
+            </label>
+
+            <label class="dropzone" data-input="ids-input">
+              <input id="ids-input" type="file" accept=".json" />
+              <strong>IDS JSON</strong>
+              <span>Suricata or Snort alerts</span>
+              <em class="file-label">No file selected</em>
+            </label>
+          </div>
+
+          <p id="input-error" class="error-banner hidden"></p>
+        </article>
+      </section>
+    </header>
+
+    <main class="workspace">
+      <section class="metrics-grid">
+        <article class="metric-card">
+          <span>Total Events</span>
+          <strong id="metric-events">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>Incidents</span>
+          <strong id="metric-incidents">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>Highest Risk</span>
+          <strong id="metric-risk">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>MITRE Techniques</span>
+          <strong id="metric-mitre">0</strong>
+        </article>
+      </section>
+
+      <section class="insight-grid">
+        <article class="paper-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Operational View</p>
+              <h3>Attack chain canvas</h3>
+            </div>
+            <span id="chain-count" class="quiet-pill">0 chains</span>
+          </div>
+          <div id="attack-chains" class="attack-chain-list empty-state">
+            Run an analysis to visualize the attack progression.
+          </div>
+        </article>
+
+        <article class="paper-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Analyst Memory</p>
+              <h3>Saved investigations</h3>
+            </div>
+            <button id="refresh-runs-btn" class="ghost-button">Refresh</button>
+          </div>
+          <div id="saved-runs" class="saved-runs empty-state">
+            Saved local investigations will appear here after analysis.
+          </div>
+        </article>
+      </section>
+
+      <section class="paper-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Analyst Filters</p>
+            <h3>Refine evidence view</h3>
+          </div>
+        </div>
+
+        <div class="filter-grid">
+          <label>
+            IP Address
+            <input id="filter-ip" type="text" placeholder="Filter by source or destination IP" />
+          </label>
+          <label>
+            Attack Phase
+            <select id="filter-phase">
+              <option value="">All phases</option>
+              <option value="Reconnaissance">Reconnaissance</option>
+              <option value="Exploitation">Exploitation</option>
+              <option value="Exfiltration">Exfiltration</option>
+              <option value="Unknown">Unknown</option>
+            </select>
+          </label>
+          <label>
+            Minimum Risk
+            <select id="filter-risk">
+              <option value="0">0+</option>
+              <option value="25">25+</option>
+              <option value="50">50+</option>
+              <option value="75">75+</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="dual-grid">
+        <article class="paper-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Timeline</p>
+              <h3>Chronological evidence stream</h3>
+            </div>
+            <span id="timeline-count" class="quiet-pill">0 rows</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Incident</th>
+                  <th>Source</th>
+                  <th>Flow</th>
+                  <th>Protocol</th>
+                  <th>Action</th>
+                  <th>Summary</th>
+                </tr>
+              </thead>
+              <tbody id="timeline-body"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="paper-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Risk Distribution</p>
+              <h3>Incident priority chart</h3>
+            </div>
+          </div>
+          <div id="risk-chart" class="risk-chart empty-state">
+            Run an analysis to generate the priority chart.
+          </div>
+        </article>
+      </section>
+
+      <section class="paper-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="section-kicker">Investigation Output</p>
+            <h3>Correlated incidents</h3>
+          </div>
+          <span id="incident-count" class="quiet-pill">0 incidents</span>
+        </div>
+        <div id="incidents-list" class="incident-list empty-state">
+          Upload evidence or load the sample attack to generate incidents.
+        </div>
+      </section>
+
+      <section class="dual-grid">
+        <article class="paper-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Case Notes</p>
+              <h3>Analyst notebook</h3>
+            </div>
+            <button id="save-notes-btn" class="secondary-button">Save Notes</button>
+          </div>
+          <textarea
+            id="case-notes"
+            class="notes-area"
+            placeholder="Record observations, containment actions, follow-ups, and handoff notes."
+          ></textarea>
+        </article>
+
+        <article class="paper-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">Exports</p>
+              <h3>Download deliverables</h3>
+            </div>
+          </div>
+          <div class="export-actions">
+            <button id="export-json-btn" class="ghost-button" disabled>Export JSON</button>
+            <button id="export-markdown-btn" class="ghost-button" disabled>Export Markdown</button>
+            <button id="export-timeline-btn" class="ghost-button" disabled>Export Timeline CSV</button>
+            <button id="export-incidents-btn" class="ghost-button" disabled>Export Incidents CSV</button>
+            <button id="export-summary-btn" class="primary-button" disabled>Export Executive Summary</button>
+          </div>
+          <p class="helper-copy">
+            Exports are generated locally and download instantly. Saved investigations stay in this browser.
+          </p>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
